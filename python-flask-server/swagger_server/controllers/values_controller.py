@@ -9,57 +9,72 @@ from swagger_server.models.protein_array_value import ProteinArrayValue  # noqa:
 from swagger_server.models.rnai_value import RnaiValue  # noqa: E501
 from swagger_server import util
 
+from swagger_server.db.queries import select_copy_number_by_cell_line
+from swagger_server.db.queries import select_copy_number_by_gene
+from swagger_server.db.queries import select_gene_dependency_by_cell_line
+from swagger_server.db.queries import select_gene_dependency_by_gene
+from swagger_server.db.queries import select_gene_expression_by_cell_line
+from swagger_server.db.queries import select_gene_expression_by_gene
+from swagger_server.db.queries import select_mutations_brief_by_cell_line
+from swagger_server.db.queries import select_mutations_brief_by_gene
+from swagger_server.db.queries import select_mutations_by_cell_line
+from swagger_server.db.queries import select_mutations_by_gene
+from swagger_server.db.queries import select_protein_array_by_antibody_name
+from swagger_server.db.queries import select_protein_array_by_cell_line
+from swagger_server.db.queries import select_rnai_by_cell_line
+from swagger_server.db.queries import select_rnai_by_gene
+
 
 def copy_number_by_cell_line_depmap_id_get(depmap_id):  # noqa: E501
-    """Retrieve copy-number values by cell line
+    """Retrieve gene expression by cell line
 
      # noqa: E501
 
-    :param depmap_id: 
+    :param depmap_id:
     :type depmap_id: str
 
     :rtype: List[CopyNumberValue]
     """
-    return 'do some magic!'
+    return select_copy_number_by_cell_line(depmap_id)
 
 
 def copy_number_by_gene_entrez_gene_id_get(entrez_gene_id):  # noqa: E501
-    """Retrieve copy-number values by gene
+    """Retrieve gene expression by gene
 
      # noqa: E501
 
-    :param entrez_gene_id: 
+    :param entrez_gene_id:
     :type entrez_gene_id: int
 
     :rtype: List[CopyNumberValue]
     """
-    return 'do some magic!'
+    return select_copy_number_by_gene(entrez_gene_id)
 
 
 def gene_dependency_by_cell_line_depmap_id_get(depmap_id):  # noqa: E501
-    """Retrieve gene dependency by cell line
+    """Retrieve gene expression by cell line
 
      # noqa: E501
 
-    :param depmap_id: 
+    :param depmap_id:
     :type depmap_id: str
 
     :rtype: List[DependencyValue]
     """
-    return 'do some magic!'
+    return select_gene_dependency_by_cell_line(depmap_id)
 
 
 def gene_dependency_by_gene_entrez_gene_id_get(entrez_gene_id):  # noqa: E501
-    """Retrieve gene dependency by gene
+    """Retrieve gene expression by gene
 
      # noqa: E501
 
-    :param entrez_gene_id: 
+    :param entrez_gene_id:
     :type entrez_gene_id: int
 
     :rtype: List[DependencyValue]
     """
-    return 'do some magic!'
+    return select_gene_dependency_by_gene(entrez_gene_id)
 
 
 def gene_expression_by_cell_line_depmap_id_get(depmap_id):  # noqa: E501
@@ -67,12 +82,12 @@ def gene_expression_by_cell_line_depmap_id_get(depmap_id):  # noqa: E501
 
      # noqa: E501
 
-    :param depmap_id: 
+    :param depmap_id:
     :type depmap_id: str
 
     :rtype: List[ExpressionValue]
     """
-    return 'do some magic!'
+    return select_gene_expression_by_cell_line(depmap_id)
 
 
 def gene_expression_by_gene_ensembl_gene_get(ensembl_gene):  # noqa: E501
@@ -80,12 +95,12 @@ def gene_expression_by_gene_ensembl_gene_get(ensembl_gene):  # noqa: E501
 
      # noqa: E501
 
-    :param ensembl_gene: 
+    :param ensembl_gene:
     :type ensembl_gene: str
 
     :rtype: List[ExpressionValue]
     """
-    return 'do some magic!'
+    return select_gene_expression_by_gene(ensembl_gene)
 
 
 def mutations_by_cell_line_depmap_id_get(depmap_id):  # noqa: E501
@@ -93,12 +108,12 @@ def mutations_by_cell_line_depmap_id_get(depmap_id):  # noqa: E501
 
      # noqa: E501
 
-    :param depmap_id: 
+    :param depmap_id:
     :type depmap_id: str
 
     :rtype: List[Mutation]
     """
-    return 'do some magic!'
+    return select_mutations_by_cell_line(depmap_id)
 
 
 def mutations_by_gene_entrez_gene_id_get(entrez_gene_id):  # noqa: E501
@@ -106,12 +121,12 @@ def mutations_by_gene_entrez_gene_id_get(entrez_gene_id):  # noqa: E501
 
      # noqa: E501
 
-    :param entrez_gene_id: 
+    :param entrez_gene_id:
     :type entrez_gene_id: int
 
     :rtype: List[Mutation]
     """
-    return 'do some magic!'
+    return select_mutations_by_gene(entrez_gene_id)
 
 
 def protein_array_by_cell_line_depmap_id_get(depmap_id):  # noqa: E501
@@ -119,12 +134,12 @@ def protein_array_by_cell_line_depmap_id_get(depmap_id):  # noqa: E501
 
      # noqa: E501
 
-    :param depmap_id: 
+    :param depmap_id:
     :type depmap_id: str
 
     :rtype: List[ProteinArrayValue]
     """
-    return 'do some magic!'
+    return select_protein_array_by_cell_line(depmap_id)
 
 
 def protein_array_by_protein_antibody_name_get(antibody_name):  # noqa: E501
@@ -132,12 +147,12 @@ def protein_array_by_protein_antibody_name_get(antibody_name):  # noqa: E501
 
      # noqa: E501
 
-    :param antibody_name: 
+    :param antibody_name:
     :type antibody_name: str
 
     :rtype: List[ProteinArrayValue]
     """
-    return 'do some magic!'
+    return select_protein_array_by_antibody_name(antibody_name)
 
 
 def rnai_by_cell_line_depmap_id_get(depmap_id):  # noqa: E501
@@ -145,12 +160,12 @@ def rnai_by_cell_line_depmap_id_get(depmap_id):  # noqa: E501
 
      # noqa: E501
 
-    :param depmap_id: 
+    :param depmap_id:
     :type depmap_id: str
 
     :rtype: List[RnaiValue]
     """
-    return 'do some magic!'
+    return select_rnai_by_cell_line(depmap_id)
 
 
 def rnai_by_gene_entrez_gene_id_get(entrez_gene_id):  # noqa: E501
@@ -158,9 +173,9 @@ def rnai_by_gene_entrez_gene_id_get(entrez_gene_id):  # noqa: E501
 
      # noqa: E501
 
-    :param entrez_gene_id: 
+    :param entrez_gene_id:
     :type entrez_gene_id: int
 
     :rtype: List[RnaiValue]
     """
-    return 'do some magic!'
+    return select_rnai_by_gene(entrez_gene_id)

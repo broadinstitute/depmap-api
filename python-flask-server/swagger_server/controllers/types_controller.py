@@ -6,6 +6,9 @@ from swagger_server.models.gene import Gene  # noqa: E501
 from swagger_server.models.protein import Protein  # noqa: E501
 from swagger_server import util
 
+from swagger_server.db.queries import select_all_genes
+from swagger_server.db.queries import select_all_cell_lines
+from swagger_server.db.queries import select_all_proteins
 
 def cell_lines_get():  # noqa: E501
     """Retrieve list of cell lines
@@ -15,7 +18,8 @@ def cell_lines_get():  # noqa: E501
 
     :rtype: List[CellLine]
     """
-    return 'do some magic!'
+    return select_all_cell_lines()
+
 
 
 def genes_get():  # noqa: E501
@@ -26,7 +30,7 @@ def genes_get():  # noqa: E501
 
     :rtype: List[Gene]
     """
-    return 'do some magic!'
+    return select_all_genes()
 
 
 def proteins_get():  # noqa: E501
@@ -37,4 +41,4 @@ def proteins_get():  # noqa: E501
 
     :rtype: List[Protein]
     """
-    return 'do some magic!'
+    return select_all_proteins()
