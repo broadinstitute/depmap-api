@@ -1,0 +1,558 @@
+---
+swagger: "2.0"
+info:
+  description: "This site provides an API access to [Cancer Dependency Map (DepMap)\
+    \ data](https://depmap.org/portal/download/). The goal of the Cancer Dependency\
+    \ Map is to create a comprehensive preclinical reference map connecting  tumor\
+    \ features with tumor dependencies to accelerate the development of precision\
+    \ treatments.  By integrating data beyond those collected at the Broad, DepMap\
+    \ hopes to develop a complete  understanding of the vulnerabilities of cancer,\
+    \ identify targets for therapeutic development,  and design strategies to optimize\
+    \ patient responses to those therapies. By using this site, you agree to DepMap's\
+    \ [Terms and Conditions](https://depmap.org/portal/terms/)."
+  version: "19Q1"
+  title: "Cancer Dependency Map API"
+  termsOfService: "By using this site, you agree to DepMap's Terms and Conditions\
+    \ (https://depmap.org/portal/terms/)"
+  contact:
+    name: "Broad NCATS translator"
+    email: "translator@broadinstitute.org"
+paths:
+  /genes:
+    get:
+      tags:
+      - "types"
+      summary: "Retrieve list of genes"
+      operationId: "genes_get"
+      parameters: []
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/gene"
+      x-swagger-router-controller: "swagger_server.controllers.types_controller"
+  /cell_lines:
+    get:
+      tags:
+      - "types"
+      summary: "Retrieve list of cell lines"
+      operationId: "cell_lines_get"
+      parameters: []
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/cell_line"
+      x-swagger-router-controller: "swagger_server.controllers.types_controller"
+  /proteins:
+    get:
+      tags:
+      - "types"
+      summary: "Retrieve list of protein antibodies"
+      operationId: "proteins_get"
+      parameters: []
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/protein"
+      x-swagger-router-controller: "swagger_server.controllers.types_controller"
+  /gene_expression/by_gene/{ensembl_gene}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve gene expression by gene"
+      operationId: "gene_expression_by_gene_ensembl_gene_get"
+      parameters:
+      - name: "ensembl_gene"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/expression_value"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+  /gene_expression/by_cell_line/{depmap_id}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve gene expression by cell line"
+      operationId: "gene_expression_by_cell_line_depmap_id_get"
+      parameters:
+      - name: "depmap_id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/expression_value"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+  /gene_dependency/by_gene/{entrez_gene_id}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve gene dependency by gene"
+      operationId: "gene_dependency_by_gene_entrez_gene_id_get"
+      parameters:
+      - name: "entrez_gene_id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/dependency_value"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+  /gene_dependency/by_cell_line/{depmap_id}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve gene dependency by cell line"
+      operationId: "gene_dependency_by_cell_line_depmap_id_get"
+      parameters:
+      - name: "depmap_id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/dependency_value"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+  /copy_number/by_gene/{entrez_gene_id}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve copy-number values by gene"
+      operationId: "copy_number_by_gene_entrez_gene_id_get"
+      parameters:
+      - name: "entrez_gene_id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/copy_number_value"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+  /copy_number/by_cell_line/{depmap_id}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve copy-number values by cell line"
+      operationId: "copy_number_by_cell_line_depmap_id_get"
+      parameters:
+      - name: "depmap_id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/copy_number_value"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+  /rnai/by_gene/{entrez_gene_id}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve rnai values by gene"
+      operationId: "rnai_by_gene_entrez_gene_id_get"
+      parameters:
+      - name: "entrez_gene_id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/rnai_value"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+  /rnai/by_cell_line/{depmap_id}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve rnai values by cell line"
+      operationId: "rnai_by_cell_line_depmap_id_get"
+      parameters:
+      - name: "depmap_id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/rnai_value"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+  /mutations/by_gene/{entrez_gene_id}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve mutations by gene"
+      operationId: "mutations_by_gene_entrez_gene_id_get"
+      parameters:
+      - name: "entrez_gene_id"
+        in: "path"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/mutation"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+  /mutations/by_cell_line/{depmap_id}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve mutations by cell line"
+      operationId: "mutations_by_cell_line_depmap_id_get"
+      parameters:
+      - name: "depmap_id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/mutation"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+  /protein_array/by_protein/{antibody_name}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve protein array values by gene"
+      operationId: "protein_array_by_protein_antibody_name_get"
+      parameters:
+      - name: "antibody_name"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/protein_array_value"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+  /protein_array/by_cell_line/{depmap_id}:
+    get:
+      tags:
+      - "values"
+      summary: "Retrieve protein array values by cell line"
+      operationId: "protein_array_by_cell_line_depmap_id_get"
+      parameters:
+      - name: "depmap_id"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/protein_array_value"
+      x-swagger-router-controller: "swagger_server.controllers.values_controller"
+definitions:
+  gene:
+    type: "object"
+    properties:
+      ensembl_gene:
+        type: "string"
+      entrez_gene_id:
+        type: "integer"
+      gene_symbol:
+        type: "string"
+      omim:
+        type: "string"
+    example:
+      entrez_gene_id: 0
+      omim: "omim"
+      gene_symbol: "gene_symbol"
+      ensembl_gene: "ensembl_gene"
+  cell_line:
+    type: "object"
+    properties:
+      depmap_id:
+        type: "string"
+      ccle_name:
+        type: "string"
+      aliases:
+        type: "array"
+        items:
+          type: "string"
+      cosmic_id:
+        type: "string"
+      sanger_id:
+        type: "string"
+      primary_disease:
+        type: "string"
+      subtype_disease:
+        type: "string"
+      gender:
+        type: "string"
+      source:
+        type: "string"
+    example:
+      ccle_name: "ccle_name"
+      aliases:
+      - "aliases"
+      - "aliases"
+      sanger_id: "sanger_id"
+      gender: "gender"
+      cosmic_id: "cosmic_id"
+      primary_disease: "primary_disease"
+      subtype_disease: "subtype_disease"
+      depmap_id: "depmap_id"
+      source: "source"
+  protein:
+    type: "object"
+    properties:
+      antibody_name:
+        type: "string"
+      target_genes:
+        type: "array"
+        items:
+          type: "string"
+      validation_status:
+        type: "string"
+      company:
+        type: "string"
+      catalog_number:
+        type: "string"
+    example:
+      antibody_name: "antibody_name"
+      target_genes:
+      - "target_genes"
+      - "target_genes"
+      catalog_number: "catalog_number"
+      company: "company"
+      validation_status: "validation_status"
+  expression_value:
+    type: "object"
+    properties:
+      ensembl_gene:
+        type: "string"
+      depmap_id:
+        type: "string"
+      value:
+        type: "number"
+    example:
+      ensembl_gene: "ensembl_gene"
+      depmap_id: "depmap_id"
+      value: 0.80082819046101150206595775671303272247314453125
+  dependency_value:
+    type: "object"
+    properties:
+      entrez_gene_id:
+        type: "integer"
+      depmap_id:
+        type: "string"
+      value:
+        type: "number"
+    example:
+      entrez_gene_id: 0
+      depmap_id: "depmap_id"
+      value: 6.02745618307040320615897144307382404804229736328125
+  copy_number_value:
+    type: "object"
+    properties:
+      entrez_gene_id:
+        type: "integer"
+      depmap_id:
+        type: "string"
+      value:
+        type: "number"
+    example:
+      entrez_gene_id: 0
+      depmap_id: "depmap_id"
+      value: 6.02745618307040320615897144307382404804229736328125
+  rnai_value:
+    type: "object"
+    properties:
+      entrez_gene_ids:
+        type: "array"
+        items:
+          type: "integer"
+      depmap_id:
+        type: "string"
+      value:
+        type: "number"
+    example:
+      entrez_gene_ids:
+      - 0
+      - 0
+      depmap_id: "depmap_id"
+      value: 6.02745618307040320615897144307382404804229736328125
+  protein_array_value:
+    type: "object"
+    properties:
+      protein:
+        $ref: "#/definitions/protein_array_value_protein"
+      depmap_id:
+        type: "string"
+      value:
+        type: "number"
+    example:
+      protein:
+        antibody_name: "antibody_name"
+        target_genes:
+        - "target_genes"
+        - "target_genes"
+      depmap_id: "depmap_id"
+      value: 0.80082819046101150206595775671303272247314453125
+  mutation:
+    type: "object"
+    properties:
+      entrez_gene_id:
+        type: "integer"
+      gene_symbol:
+        type: "string"
+      depmap_id:
+        type: "string"
+      ncbi_build:
+        type: "integer"
+      chromosome:
+        type: "string"
+      start_position:
+        type: "integer"
+      end_position:
+        type: "integer"
+      strand:
+        type: "string"
+      variant_classification:
+        type: "string"
+      variant_type:
+        type: "string"
+      reference_allele:
+        type: "string"
+      tumor_seq_allele:
+        type: "string"
+      dbsnp_rs:
+        type: "array"
+        items:
+          type: "string"
+      dbsnp_val_status:
+        type: "string"
+      genome_change:
+        type: "string"
+      annotation_transcript:
+        type: "string"
+      cdna_change:
+        type: "string"
+      codon_change:
+        type: "string"
+      protein_change:
+        type: "string"
+      is_deleterious:
+        type: "string"
+      tcga_hotspot_count:
+        type: "string"
+      cosmic_hotspot_count:
+        type: "string"
+      exac_af:
+        type: "string"
+      va_wes_ac:
+        type: "string"
+      cga_wes_ac:
+        type: "string"
+      sanger_wes_ac:
+        type: "string"
+      sanger_recalibwes_ac:
+        type: "string"
+      rnaseq_ac:
+        type: "string"
+      hc_ac:
+        type: "string"
+      rd_ac:
+        type: "string"
+      wgs_ac:
+        type: "string"
+      variant_annotation:
+        type: "string"
+    example:
+      start_position: 1
+      hc_ac: "hc_ac"
+      sanger_recalibwes_ac: "sanger_recalibwes_ac"
+      variant_type: "variant_type"
+      annotation_transcript: "annotation_transcript"
+      gene_symbol: "gene_symbol"
+      end_position: 5
+      wgs_ac: "wgs_ac"
+      strand: "strand"
+      genome_change: "genome_change"
+      tumor_seq_allele: "tumor_seq_allele"
+      cosmic_hotspot_count: "cosmic_hotspot_count"
+      cdna_change: "cdna_change"
+      codon_change: "codon_change"
+      dbsnp_val_status: "dbsnp_val_status"
+      dbsnp_rs:
+      - "dbsnp_rs"
+      - "dbsnp_rs"
+      tcga_hotspot_count: "tcga_hotspot_count"
+      rnaseq_ac: "rnaseq_ac"
+      entrez_gene_id: 0
+      chromosome: "chromosome"
+      exac_af: "exac_af"
+      sanger_wes_ac: "sanger_wes_ac"
+      protein_change: "protein_change"
+      va_wes_ac: "va_wes_ac"
+      reference_allele: "reference_allele"
+      ncbi_build: 6
+      cga_wes_ac: "cga_wes_ac"
+      depmap_id: "depmap_id"
+      rd_ac: "rd_ac"
+      variant_annotation: "variant_annotation"
+      variant_classification: "variant_classification"
+      is_deleterious: "is_deleterious"
+  protein_array_value_protein:
+    properties:
+      antibody_name:
+        type: "string"
+      target_genes:
+        type: "array"
+        items:
+          type: "string"
+    example:
+      antibody_name: "antibody_name"
+      target_genes:
+      - "target_genes"
+      - "target_genes"
