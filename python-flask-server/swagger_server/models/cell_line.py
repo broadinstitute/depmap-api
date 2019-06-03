@@ -15,11 +15,13 @@ class CellLine(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, depmap_id: str=None, ccle_name: str=None, aliases: List[str]=None, cosmic_id: str=None, sanger_id: str=None, primary_disease: str=None, subtype_disease: str=None, gender: str=None, source: str=None):  # noqa: E501
+    def __init__(self, depmap_id: str=None, stripped_cell_line_name: str=None, ccle_name: str=None, aliases: List[str]=None, cosmic_id: str=None, sanger_id: str=None, disease: str=None, disease_subtype: str=None, disease_sub_subtype: str=None, gender: str=None, source: str=None):  # noqa: E501
         """CellLine - a model defined in Swagger
 
         :param depmap_id: The depmap_id of this CellLine.  # noqa: E501
         :type depmap_id: str
+        :param stripped_cell_line_name: The stripped_cell_line_name of this CellLine.  # noqa: E501
+        :type stripped_cell_line_name: str
         :param ccle_name: The ccle_name of this CellLine.  # noqa: E501
         :type ccle_name: str
         :param aliases: The aliases of this CellLine.  # noqa: E501
@@ -28,10 +30,12 @@ class CellLine(Model):
         :type cosmic_id: str
         :param sanger_id: The sanger_id of this CellLine.  # noqa: E501
         :type sanger_id: str
-        :param primary_disease: The primary_disease of this CellLine.  # noqa: E501
-        :type primary_disease: str
-        :param subtype_disease: The subtype_disease of this CellLine.  # noqa: E501
-        :type subtype_disease: str
+        :param disease: The disease of this CellLine.  # noqa: E501
+        :type disease: str
+        :param disease_subtype: The disease_subtype of this CellLine.  # noqa: E501
+        :type disease_subtype: str
+        :param disease_sub_subtype: The disease_sub_subtype of this CellLine.  # noqa: E501
+        :type disease_sub_subtype: str
         :param gender: The gender of this CellLine.  # noqa: E501
         :type gender: str
         :param source: The source of this CellLine.  # noqa: E501
@@ -39,35 +43,41 @@ class CellLine(Model):
         """
         self.swagger_types = {
             'depmap_id': str,
+            'stripped_cell_line_name': str,
             'ccle_name': str,
             'aliases': List[str],
             'cosmic_id': str,
             'sanger_id': str,
-            'primary_disease': str,
-            'subtype_disease': str,
+            'disease': str,
+            'disease_subtype': str,
+            'disease_sub_subtype': str,
             'gender': str,
             'source': str
         }
 
         self.attribute_map = {
             'depmap_id': 'depmap_id',
+            'stripped_cell_line_name': 'stripped_cell_line_name',
             'ccle_name': 'ccle_name',
             'aliases': 'aliases',
             'cosmic_id': 'cosmic_id',
             'sanger_id': 'sanger_id',
-            'primary_disease': 'primary_disease',
-            'subtype_disease': 'subtype_disease',
+            'disease': 'disease',
+            'disease_subtype': 'disease_subtype',
+            'disease_sub_subtype': 'disease_sub_subtype',
             'gender': 'gender',
             'source': 'source'
         }
 
         self._depmap_id = depmap_id
+        self._stripped_cell_line_name = stripped_cell_line_name
         self._ccle_name = ccle_name
         self._aliases = aliases
         self._cosmic_id = cosmic_id
         self._sanger_id = sanger_id
-        self._primary_disease = primary_disease
-        self._subtype_disease = subtype_disease
+        self._disease = disease
+        self._disease_subtype = disease_subtype
+        self._disease_sub_subtype = disease_sub_subtype
         self._gender = gender
         self._source = source
 
@@ -102,6 +112,27 @@ class CellLine(Model):
         """
 
         self._depmap_id = depmap_id
+
+    @property
+    def stripped_cell_line_name(self) -> str:
+        """Gets the stripped_cell_line_name of this CellLine.
+
+
+        :return: The stripped_cell_line_name of this CellLine.
+        :rtype: str
+        """
+        return self._stripped_cell_line_name
+
+    @stripped_cell_line_name.setter
+    def stripped_cell_line_name(self, stripped_cell_line_name: str):
+        """Sets the stripped_cell_line_name of this CellLine.
+
+
+        :param stripped_cell_line_name: The stripped_cell_line_name of this CellLine.
+        :type stripped_cell_line_name: str
+        """
+
+        self._stripped_cell_line_name = stripped_cell_line_name
 
     @property
     def ccle_name(self) -> str:
@@ -188,46 +219,67 @@ class CellLine(Model):
         self._sanger_id = sanger_id
 
     @property
-    def primary_disease(self) -> str:
-        """Gets the primary_disease of this CellLine.
+    def disease(self) -> str:
+        """Gets the disease of this CellLine.
 
 
-        :return: The primary_disease of this CellLine.
+        :return: The disease of this CellLine.
         :rtype: str
         """
-        return self._primary_disease
+        return self._disease
 
-    @primary_disease.setter
-    def primary_disease(self, primary_disease: str):
-        """Sets the primary_disease of this CellLine.
+    @disease.setter
+    def disease(self, disease: str):
+        """Sets the disease of this CellLine.
 
 
-        :param primary_disease: The primary_disease of this CellLine.
-        :type primary_disease: str
+        :param disease: The disease of this CellLine.
+        :type disease: str
         """
 
-        self._primary_disease = primary_disease
+        self._disease = disease
 
     @property
-    def subtype_disease(self) -> str:
-        """Gets the subtype_disease of this CellLine.
+    def disease_subtype(self) -> str:
+        """Gets the disease_subtype of this CellLine.
 
 
-        :return: The subtype_disease of this CellLine.
+        :return: The disease_subtype of this CellLine.
         :rtype: str
         """
-        return self._subtype_disease
+        return self._disease_subtype
 
-    @subtype_disease.setter
-    def subtype_disease(self, subtype_disease: str):
-        """Sets the subtype_disease of this CellLine.
+    @disease_subtype.setter
+    def disease_subtype(self, disease_subtype: str):
+        """Sets the disease_subtype of this CellLine.
 
 
-        :param subtype_disease: The subtype_disease of this CellLine.
-        :type subtype_disease: str
+        :param disease_subtype: The disease_subtype of this CellLine.
+        :type disease_subtype: str
         """
 
-        self._subtype_disease = subtype_disease
+        self._disease_subtype = disease_subtype
+
+    @property
+    def disease_sub_subtype(self) -> str:
+        """Gets the disease_sub_subtype of this CellLine.
+
+
+        :return: The disease_sub_subtype of this CellLine.
+        :rtype: str
+        """
+        return self._disease_sub_subtype
+
+    @disease_sub_subtype.setter
+    def disease_sub_subtype(self, disease_sub_subtype: str):
+        """Sets the disease_sub_subtype of this CellLine.
+
+
+        :param disease_sub_subtype: The disease_sub_subtype of this CellLine.
+        :type disease_sub_subtype: str
+        """
+
+        self._disease_sub_subtype = disease_sub_subtype
 
     @property
     def gender(self) -> str:

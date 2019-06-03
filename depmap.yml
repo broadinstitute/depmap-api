@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: '19Q1'
+  version: '2019Q2'
   title: Cancer Dependency Map API
   description: >-
     This site provides an API access to [Cancer Dependency Map (DepMap) data](https://depmap.org/portal/download/).
@@ -276,19 +276,25 @@ definitions:
   gene:
     type: object
     properties:
+      hgnc_id:
+        type: string
+      gene_symbol:
+        type: string
       ensembl_gene:
         type: string
       entrez_gene_id:
         type: integer
-      gene_symbol:
-        type: string
       omim:
-        type: string
+        type: array
+        items:
+          type: string
 
   cell_line:
     type: object
     properties:
       depmap_id:
+        type: string
+      stripped_cell_line_name:
         type: string
       ccle_name:
         type: string
@@ -300,9 +306,11 @@ definitions:
         type: string
       sanger_id:
         type: string
-      primary_disease:
+      disease:
         type: string
-      subtype_disease:
+      disease_subtype:
+        type: string
+      disease_sub_subtype:
         type: string
       gender:
         type: string
@@ -434,8 +442,6 @@ definitions:
       cosmic_hotspot_count:
         type: string
       exac_af:
-        type: string
-      va_wes_ac:
         type: string
       cga_wes_ac:
         type: string
