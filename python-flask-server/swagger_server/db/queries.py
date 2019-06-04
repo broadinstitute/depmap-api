@@ -24,7 +24,7 @@ def select_all_genes():
     """
 
     query = """
-        SELECT GENE_SYMBOL, ENTREZ_GENE_ID, ENSEMBL_GENE, MIM_NUMBER FROM GENE
+        SELECT GENE_SYMBOL, HGNC_ID, ENTREZ_GENE_ID, ENSEMBL_GENE, MIM_NUMBER FROM GENE
     """
     cur = connection.cursor()
     cur.execute(query)
@@ -32,7 +32,8 @@ def select_all_genes():
 
     genes = []
     for row in rows:
-        gene = Gene(gene_symbol=row[0], entrez_gene_id=row[1], ensembl_gene=row[2], omim=row[3])
+        omim = row[4].split(';') if row[4] != "None" else []
+        gene = Gene(gene_symbol=row[0], hgnc_id=row[1], entrez_gene_id=row[2], ensembl_gene=row[3], omim=omim)
         genes.append(gene)
     cur.close()
     return genes
@@ -46,12 +47,14 @@ def select_all_cell_lines():
     query = """
         SELECT
             DEPMAP_ID,
+            STRIPPED_CELL_LINE_NAME,
             CCLE_NAME,
-            ALIASES,
+            ALIAS,
             COSMIC_ID,
             SANGER_ID,
-            PRIMARY_DISEASE,
-            SUBTYPE_DISEASE,
+            DISEASE,
+            DISEASE_SUTYPE,
+            DISEASE_SUB_SUBTYPE,
             GENDER,
             SOURCE
         FROM CELL_LINE
@@ -64,14 +67,16 @@ def select_all_cell_lines():
     for row in rows:
         cell_line = CellLine(
             depmap_id = row[0],
-            ccle_name = row[1],
-            aliases = (row[2].split(';') if row[2] != "" else []),
-            cosmic_id = row[3],
-            sanger_id = row[4],
-            primary_disease = row[5],
-            subtype_disease = row[6],
-            gender = row[7],
-            source = row[8]
+            stripped_cell_line_name = row[1],
+            ccle_name = row[2],
+            aliases = [alias.strip() for alias in (row[3].split(',') if row[3] != "" else [])],
+            cosmic_id = row[4],
+            sanger_id = row[5],
+            disease = row[6],
+            disease_subtype = row[7],
+            disease_sub_subtype = row[8],
+            gender = row[9],
+            source = row[10]
         )
         cell_lines.append(cell_line)
     cur.close()
@@ -514,7 +519,6 @@ def select_mutations(query, query_id, mutation_info):
             tcga_hotspot_count = mut_info.get('TCGAhsCnt'),
             cosmic_hotspot_count = mut_info.get('COSMIChsCnt'),
             exac_af = mut_info.get('ExAC_AF'),
-            va_wes_ac = mut_info.get('VA_WES_AC'),
             cga_wes_ac = mut_info.get('CGA_WES_AC'),
             sanger_wes_ac = mut_info.get('SangerWES_AC'),
             sanger_recalibwes_ac = mut_info.get('SangerRecalibWES_AC'),
