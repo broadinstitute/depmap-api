@@ -5,6 +5,36 @@ import sqlite3
 import requests
 from collections import namedtuple
 
+FILENAME = {
+  "OMIM": "mim2gene.txt",
+  "HGNC": "hgnc.txt",
+  "GENE_EXPRESSION": "CCLE_expression_full.csv",
+  "GENE_KNOCKDOWN": "Achilles_gene_effect.csv",
+  "COPY_NUMBER": "CCLE_gene_cn.csv",
+  "RNAI": "D2_combined_gene_dep_scores.csv",
+  "CELL_LINE": "sample_info.csv",
+  "MUTATIONS": "CCLE_mutations.csv",
+  "PROTEIN_METADATA": "CCLE_RPPA_Ab_info_20180123.csv",
+  "PROTEIN": "CCLE_RPPA_20180123.csv"
+}
+
+
+class Gene:
+    """
+        class representing a gene
+    """
+    def __init__(self, entrez=None, ensembl=None, symbol=None, hgnc=None, omim=None):
+        self.gene_id = None
+        self.entrez = entrez
+        self.ensembl = ensembl
+        self.symbol = symbol
+        self.hgnc = hgnc
+        self.omim = omim
+
+    def __str__(self):
+        return "Gene"+str(self.__dict__)
+
+
 def db_connection(database):
     """
         Connect to an SQL database
@@ -37,6 +67,7 @@ def load_metadata(connection, filename, table_name, id_index=[0]):
         id = 1
         cur = connection.cursor()
         for row in input:
+            row = [rm_na(entry) for entry in row]
             statement = "INSERT INTO "+table_name+" ("+table_name+"_ID, "+", ".join(headers)+")\n"
             statement += "VALUES ("+str(id)+", '"+"', '".join(row)+"');"
             cur.execute(statement)
@@ -52,30 +83,53 @@ def load_cell_lines(connection):
     """
         Load cell lines from a file to the SQLite database
     """
-    cell_line_ids = load_metadata(connection, "DepMap-2019q1-celllines_v2.csv", "CELL_LINE", [0,1])
-    cell_line_ids['KE97_HAEMATOPOIETIC_AND_LYMPHOID_TISSUE'] = cell_line_ids['ACH-000167']
-    cell_line_ids['NCIH684_LIVER'] = cell_line_ids['ACH-000089']
-    cell_line_ids['S117_SOFT_TISSUE'] = cell_line_ids['ACH-000037']
-    cell_line_ids['AZ521_STOMACH'] = cell_line_ids['ACH-001015']
+    cell_line_ids = load_metadata(connection, FILENAME["CELL_LINE"], "CELL_LINE", [0,2])
+    if 'ACH-001316' not in cell_line_ids:
+        cell_line_ids['ACH-001316'] = cell_line_ids['ACH-001163']
+    if 'AZ521_STOMACH' not in cell_line_ids:
+        cell_line_ids['AZ521_STOMACH'] = cell_line_ids['ACH-001015']
+    if 'KE97_HAEMATOPOIETIC_AND_LYMPHOID_TISSUE' not in cell_line_ids:
+        cell_line_ids['KE97_HAEMATOPOIETIC_AND_LYMPHOID_TISSUE'] = cell_line_ids['ACH-000167']
+    if 'NCIH684_LIVER' not in cell_line_ids:
+        cell_line_ids['NCIH684_LIVER'] = cell_line_ids['ACH-000089']
+    if 'S117_SOFT_TISSUE' not in cell_line_ids:
+        cell_line_ids['S117_SOFT_TISSUE'] = cell_line_ids['ACH-000037']
+
     return cell_line_ids
 
 
-def create_gene_table(connection):
+def load_hgnc_genes(genes):
     """
-        Create a gene table in the SQLite database
+        load HGNC genes
     """
-    statement = """
-        CREATE TABLE GENE (
-          GENE_ID        INTEGER PRIMARY KEY NOT NULL,
-          GENE_SYMBOL    TEXT,
-          ENTREZ_GENE_ID INTEGER,
-          ENSEMBL_GENE   TEXT,
-          MIM_NUMBER     TEXT
-        );
-    """
-    cur = connection.cursor()
-    cur.execute(statement)
-    cur.close()
+    with open(sys.argv[1]+'/'+FILENAME["HGNC"],'r') as file:
+        input = csv.reader(file,delimiter='\t')
+        headers = next(input)
+        hgnc_id_index = headers.index('HGNC ID')
+        symbol_index = headers.index('Approved symbol')
+        entrez_index = headers.index('NCBI Gene ID')
+        ensembl_index = headers.index('Ensembl gene ID')
+        for row in input:
+            hgnc_id = row[hgnc_id_index]
+            symbol = row[symbol_index]
+            entrez = row[entrez_index]
+            ensembl = row[ensembl_index]
+            gene = Gene(hgnc=hgnc_id, symbol=symbol, entrez=entrez, ensembl=ensembl)
+            genes.list.append(gene)
+            if symbol in genes.symbols:
+                print("Warning: duplicate symbol '"+symbol+"'")
+            genes.symbols[symbol]=gene
+            if entrez != "":
+                if entrez in genes.entrez:
+                    print("Warning: duplicate entrez id '"+entrez+"'")
+                genes.entrez[entrez]=gene
+            if ensembl != "":
+                if ensembl in genes.ensembl:
+                    print("Warning: duplicate ensembl id '"+ensembl+"'")
+                    print(genes.ensembl[ensembl])
+                    print(gene)
+                genes.ensembl[ensembl]=gene
+    return genes
 
 
 def load_omim_genes():
@@ -83,28 +137,72 @@ def load_omim_genes():
         Load gene mapping file from OMIM
     """
     omim_genes = {}
-    with open(sys.argv[1]+"/mim2gene.txt",'r') as file:
+    with open(sys.argv[1]+'/'+FILENAME["OMIM"],'r') as file:
         input = csv.reader(file,delimiter='\t')
         for row in input:
-            if len(row) == 5 and row[1] == "gene":
-                omim_gene = {
-                    "MIM": "MIM:"+row[0],
-                    "ENTREZ_GENE_ID": row[2],
-                    "SYMBOL": row[3],
-                    "ENSEMBL_GENE": row[4]
-                }
-                omim_genes[omim_gene['MIM']] = omim_gene
-                omim_genes[omim_gene['ENSEMBL_GENE']] = omim_gene
-                omim_genes[omim_gene['ENTREZ_GENE_ID']] = omim_gene
+            if len(row) == 5 and row[1] == "gene" and row[2] != '':
+                entrez_gene_id = row[2]
+                mim_number = "MIM:"+row[0]
+                if entrez_gene_id in omim_genes:
+                    mim_number = omim_genes[entrez_gene_id].omim + ';' + mim_number
+                    ##print("Duplicate omim genes: "+mim_number)
+                    omim_genes[entrez_gene_id].omim = mim_number
+                else:
+                    symbol = row[3]
+                    ensembl = row[4]
+                    gene = Gene(symbol=symbol, entrez=entrez_gene_id, ensembl=ensembl, omim=mim_number)
+                    omim_genes[entrez_gene_id] = gene
+                    if symbol != '':
+                        omim_genes[symbol] = gene
+                    if ensembl != '':
+                        omim_genes[ensembl] = gene
     return omim_genes
 
 
-def load_ensembl_genes(cur, omim_genes, genes):
+def update_gene(gene, genes, omim_genes):
     """
-        Load genes and their ensembl ids from gene-expression file to the SQLite database
+        update gene with OMIM gene info
     """
-    gene_id = 1
-    with open(sys.argv[1]+"/CCLE_depMap_19Q1_TPM.csv",'r') as file:
+    if gene.entrez != '':
+        omim_gene = omim_genes.get(gene.entrez)
+        if omim_gene != None:
+            gene.omim = omim_gene.omim
+            if gene.ensembl == '' and omim_gene.ensembl != '' and omim_gene.ensembl not in genes.ensembl:
+                gene.ensembl = omim_gene.ensembl
+                genes.ensembl[gene.ensembl] = gene
+
+    elif gene.ensembl != '':
+        omim_gene = omim_genes.get(gene.ensembl)
+        if omim_gene != None:
+            gene.omim = omim_gene.omim
+            if gene.entrez == '' and omim_gene.entrez != '' and omim_gene.entrez not in genes.entrez:
+                gene.entrez = omim_gene.entrez
+                genes.entrez[gene.entrez] = gene
+    else:
+        omim_gene = omim_genes.get(gene.symbol)
+        if omim_gene != None:
+            gene.omim = omim_gene.omim
+            if gene.entrez == '' and omim_gene.entrez != '' and omim_gene.entrez not in genes.entrez:
+                gene.entrez = omim_gene.entrez
+                genes.entrez[gene.entrez] = gene
+            if gene.ensembl == '' and omim_gene.ensembl != '' and omim_gene.ensembl not in genes.ensembl:
+                gene.ensembl = omim_gene.ensembl
+                genes.ensembl[gene.ensembl] = gene
+
+
+def update_genes(genes, omim_genes):
+    """
+        update genes with OMIM gene info
+    """
+    for gene in genes.list:
+        update_gene(gene, genes, omim_genes)
+
+
+def load_ensembl_genes(genes):
+    """
+        Load genes and their ensembl ids from gene-expression file
+    """
+    with open(sys.argv[1]+"/"+FILENAME["GENE_EXPRESSION"],'r') as file:
         input = csv.reader(file)
         headers = next(input)
         for header in headers:
@@ -112,91 +210,62 @@ def load_ensembl_genes(cur, omim_genes, genes):
             if len(gene_info) == 2:
                 symbol = gene_info[0]
                 ensembl = gene_info[1].strip('( )')
-                genes.headers[header] = gene_id
-                genes.ensembl[ensembl] = gene_id
-                if symbol not in genes.symbols:
-                    genes.symbols[symbol] = gene_id
-                statement = """
-                    INSERT INTO GENE (GENE_ID, GENE_SYMBOL, ENSEMBL_GENE)
-                    VALUES ({gene_id}, '{symbol}', '{ensembl}');
-                """.format(gene_id=gene_id, symbol=symbol, ensembl=ensembl)
-                cur.execute(statement)
-                if ensembl in omim_genes:
-                    omim_gene = omim_genes[ensembl]
-                    statement = """
-                        UPDATE GENE SET MIM_NUMBER = '{mim}'
-                        WHERE GENE_ID = {gene_id};
-                    """.format(mim=omim_gene['MIM'], gene_id=gene_id)
-                    cur.execute(statement)
-                gene_id += 1
-    return gene_id
+                gene = None
+                if ensembl in genes.ensembl:
+                    gene = genes.ensembl[ensembl]
+                else:
+                    if symbol in genes.symbols and genes.symbols[symbol].ensembl == "":
+                        gene = genes.symbols[symbol]
+                        gene.ensembl = ensembl
+                        genes.ensembl[ensembl]=gene
+                if gene == None:
+                    gene = Gene(symbol=symbol, ensembl=ensembl, entrez='')
+                    genes.list.append(gene)
+                    if symbol not in genes.symbols:
+                        genes.symbols[symbol]=gene
+                    genes.ensembl[ensembl]=gene
+                if gene.gene_id == None:
+                    gene.gene_id = genes.last["gene_id"]
+                    genes.headers[header] = gene.gene_id
+                    genes.last["gene_id"] += 1
+                else:
+                    print("WARNING: gene_id already set "+header)
+
+    return genes
 
 
-MY_GENE_INFO_URL = "http://mygene.info/v3/gene/{}?fields=ensembl"
-
-
-def find_entrez_gene(symbol, entrez, omim_genes, genes):
+def find_entrez_gene(symbol, entrez, genes):
     """
-        Match entrez gene to an existing entrez gene or an ensembl gene
+        Match entrez gene to an existing gene
     """
     if entrez in genes.entrez:
         return genes.entrez[entrez]
-    if entrez in omim_genes:
-        omim_gene = omim_genes[entrez]
-        if omim_gene['ENSEMBL_GENE'] in genes.ensembl:
-            return genes.ensembl.get(omim_gene['ENSEMBL_GENE'])
-    if symbol in genes.symbols:
-        return genes.symbols[symbol]
-    my_gene_info = requests.get(MY_GENE_INFO_URL.format(entrez)).json()
-    if 'ensembl' in my_gene_info and 'gene' in my_gene_info['ensembl']:
-        ensembl = my_gene_info['ensembl']
-        return genes.ensembl.get(ensembl['gene'])
+    if symbol in genes.symbols and genes.symbols[symbol].entrez == "":
+        gene = genes.symbols[symbol]
+        gene.entrez = entrez
+        genes.entrez[entrez]=gene
+        return gene
     return None
 
 
-def add_entrez_gene(cur, header, symbol, entrez, db_gene_id, omim_genes, genes, gene_id):
+def get_entrez_gene(symbol, entrez, genes):
     """
-        Add entez gene to the SQLite database
+        Find existing entrez gene or create a new one
     """
-    if db_gene_id != None:
-        if header != None:
-            genes.headers[header] = db_gene_id
-        if entrez not in genes.entrez and entrez != '0':
-            genes.entrez[entrez] = db_gene_id
-            statement = """
-                UPDATE GENE SET ENTREZ_GENE_ID = {entrez}
-                WHERE GENE_ID = {gene_id};
-            """.format(entrez=entrez, gene_id=db_gene_id)
-            cur.execute(statement)
-    else:
-        if header != None:
-            genes.headers[header] = gene_id
+    gene = find_entrez_gene(symbol, entrez, genes)
+    if gene == None:
+        gene = Gene(symbol=symbol, entrez=entrez)
+        genes.list.append(gene)
         if symbol not in genes.symbols:
-            genes.symbols[symbol] = gene_id
-        if entrez == '0':
-            statement = """
-                INSERT INTO GENE (GENE_ID, GENE_SYMBOL)
-                VALUES ({gene_id}, '{symbol}');
-            """.format(gene_id=gene_id, symbol=symbol)
-        else:
-            genes.entrez[entrez] = gene_id
-            statement = """
-                INSERT INTO GENE (GENE_ID, GENE_SYMBOL, ENTREZ_GENE_ID)
-                VALUES ({gene_id}, '{symbol}', {entrez});
-            """.format(gene_id=gene_id, symbol=symbol, entrez=entrez)
-        cur.execute(statement)
-        if entrez in omim_genes:
-            omim_gene = omim_genes[entrez]
-            statement = """
-                UPDATE GENE SET MIM_NUMBER = '{mim}'
-                WHERE GENE_ID = {gene_id};
-            """.format(mim=omim_gene['MIM'], gene_id=gene_id)
-            cur.execute(statement)
-        gene_id += 1
-    return gene_id
+            genes.symbols[symbol]=gene
+        genes.entrez[entrez]=gene
+    if gene.gene_id == None:
+        gene.gene_id = genes.last["gene_id"]
+        genes.last["gene_id"] += 1
+    return gene
 
 
-def load_entrez_genes(cur, omim_genes, genes, gene_id, filename):
+def load_entrez_genes(genes, filename):
     """
         Load entrez genes from a data file; genes as columns
     """
@@ -208,16 +277,15 @@ def load_entrez_genes(cur, omim_genes, genes, gene_id, filename):
             if header not in genes.headers and len(gene_info) == 2:
                 symbol = gene_info[0]
                 entrez = gene_info[1].strip('( )')
-                db_gene_id = find_entrez_gene(symbol, entrez, omim_genes, genes)
-                gene_id = add_entrez_gene(cur, header, symbol, entrez, db_gene_id, omim_genes, genes, gene_id)
-    return gene_id
+                gene = get_entrez_gene(symbol, entrez, genes)
+                genes.headers[header] = gene.gene_id
+    return genes
 
 
-def load_rnai_genes(cur, omim_genes, genes, gene_id, filename):
+def load_rnai_genes(genes, filename):
     """
         Load entrez genes from a data file; gene combinations as rows
     """
-    gene_combos = []
     with open(sys.argv[1]+'/'+filename,'r') as file:
         input = csv.reader(file)
         headers = next(input)
@@ -230,14 +298,69 @@ def load_rnai_genes(cur, omim_genes, genes, gene_id, filename):
                 if len(symbols) == len(entrez_list):
                     combo = []
                     for symbol, entrez in zip(symbols, entrez_list):
-                        db_gene_id = find_entrez_gene(symbol, entrez, omim_genes, genes)
-                        gene_id = add_entrez_gene(cur, None, symbol, entrez, db_gene_id, omim_genes, genes, gene_id)
-                        combo.append(genes.entrez[entrez])
-                    gene_combos.append({"header": header, "genes":combo})
+                        gene = get_entrez_gene(symbol, entrez, genes)
+                        combo.append(gene.gene_id)
+                    genes.combo_list.append({"header": header, "genes":combo})
                 else:
                     print("WARNING: "+header+" uneven sizes")
-    print(str(gene_id-1)+" genes loaded")
-    return gene_combos
+
+
+def load_genes():
+    """
+        Load entrez genes from a data file
+    """
+    Genes = namedtuple('Genes',['list','combo_list','headers','ensembl','symbols','entrez','combos','last'])
+    genes = Genes([],[],{},{},{},{},{},{"gene_id":1})
+    genes = load_hgnc_genes(genes)
+    omim_genes = load_omim_genes()
+    update_genes(genes, omim_genes)
+    load_ensembl_genes(genes)
+    print("loaded "+str(genes.last["gene_id"]-1)+ " genes")
+    genes = load_entrez_genes(genes,FILENAME["GENE_KNOCKDOWN"])
+    print("loaded "+str(genes.last["gene_id"]-1)+ " genes")
+    genes = load_entrez_genes(genes,FILENAME["COPY_NUMBER"])
+    print("loaded "+str(genes.last["gene_id"]-1)+ " genes")
+    load_rnai_genes(genes, FILENAME["RNAI"])
+    print("loaded "+str(genes.last["gene_id"]-1)+ " genes")
+    return genes
+
+
+def create_gene_table(connection):
+    """
+        Create a gene table in the SQLite database
+    """
+    statement = """
+        CREATE TABLE GENE (
+          GENE_ID        INTEGER PRIMARY KEY NOT NULL,
+          GENE_SYMBOL    TEXT,
+          HGNC_ID        TEXT,
+          ENTREZ_GENE_ID INTEGER,
+          ENSEMBL_GENE   TEXT,
+          MIM_NUMBER     TEXT
+        );
+    """
+    cur = connection.cursor()
+    cur.execute(statement)
+    cur.close()
+
+
+def save_genes(connection, genes):
+    """
+        Save genes to the SQLite database
+    """
+    create_gene_table(connection)
+    cur = connection.cursor()
+    gene_list = list(filter(lambda gene: gene.gene_id != None,genes.list))
+    for gene in sorted(gene_list, key=lambda gene: gene.gene_id):
+        statement = """
+            INSERT INTO GENE (GENE_ID, GENE_SYMBOL, HGNC_ID, ENTREZ_GENE_ID, ENSEMBL_GENE, MIM_NUMBER)
+            VALUES ({gene_id}, '{symbol}', '{hgnc}', '{entrez}', '{ensembl}', '{omim}');
+        """.format(gene_id=gene.gene_id, symbol=gene.symbol, hgnc=gene.hgnc,
+                    entrez=gene.entrez, ensembl=gene.ensembl, omim=gene.omim)
+        cur.execute(statement)
+    cur.close()
+    connection.commit()
+    print("saved "+str(len(gene_list))+" genes")
 
 
 def create_gene_combo_table(connection):
@@ -255,9 +378,9 @@ def create_gene_combo_table(connection):
     cur.close()
 
 
-def load_gene_combos(connection, gene_combos, genes):
+def save_gene_combos(connection, gene_combos, genes):
     """
-        Load gene combinations to the SQLite database
+        Save gene combinations to the SQLite database
     """
     create_gene_combo_table(connection)
     cur = connection.cursor()
@@ -273,27 +396,7 @@ def load_gene_combos(connection, gene_combos, genes):
         gene_combo_id += 1
     cur.close()
     connection.commit()
-
-
-def load_genes(connection, omim_genes):
-    """
-        Load genes from data files to the SQLite database
-    """
-    create_gene_table(connection)
-    Genes = namedtuple('Genes',['headers','ensembl','symbols','entrez','combos'])
-    genes = Genes({},{},{},{},{})
-    cur = connection.cursor()
-    gene_id = load_ensembl_genes(cur, omim_genes, genes)
-    print(str(gene_id-1)+" genes loaded")
-    gene_id = load_entrez_genes(cur, omim_genes, genes, gene_id, "gene_effect_corrected.csv")
-    print(str(gene_id-1)+" genes loaded")
-    gene_id = load_entrez_genes(cur, omim_genes, genes, gene_id, "public_19Q1_gene_cn.csv")
-    print(str(gene_id-1)+" genes loaded")
-    gene_combos = load_rnai_genes(cur, omim_genes, genes, gene_id, "D2_combined_gene_dep_scores.csv")
-    cur.close()
-    connection.commit()
-    load_gene_combos(connection, gene_combos, genes)
-    return genes
+    print("saved "+str(len(gene_combos))+" gene cominations")
 
 
 def create_value_table(connection, table):
@@ -455,12 +558,12 @@ def rm_na(string):
     return string.replace("'","''")
 
 
-def load_variants(connection, variant_set, mutation_metadata):
+def save_variants(connection, mutation_metadata):
     """
         Load variant info in the SQLite database
     """
     cur = connection.cursor()
-    for i,(var_class, var_type, var_anno) in enumerate(variant_set, 1):
+    for i,(var_class, var_type, var_anno) in enumerate(mutation_metadata.variant_set, 1):
         mutation_metadata.variants[(var_class, var_type, var_anno)] = i
         statement = """
             INSERT INTO VARIANT_TYPE (VARIANT_TYPE_ID, VARIANT_TYPE, VARIANT_CLASSIFICATION, VARIANT_ANNOTATION)
@@ -470,15 +573,15 @@ def load_variants(connection, variant_set, mutation_metadata):
 
     cur.close()
     connection.commit()
-    print(str(len(mutation_metadata.variants))+" variants loaded")
+    print("saved "+str(len(mutation_metadata.variants))+" variants")
 
 
-def load_alleles(connection, allele_set, mutation_metadata):
+def save_alleles(connection, mutation_metadata):
     """
         Load allele info in the SQLite database
     """
     cur = connection.cursor()
-    for i,(ref_allele,tumor_allele) in enumerate(allele_set, 1):
+    for i,(ref_allele,tumor_allele) in enumerate(mutation_metadata.allele_set, 1):
         mutation_metadata.alleles[(ref_allele,tumor_allele)] = i
         statement = """
             INSERT INTO ALLELE (ALLELE_ID, REFERENCE_ALLELE, TUMOR_SEQ_ALLELE)
@@ -488,18 +591,16 @@ def load_alleles(connection, allele_set, mutation_metadata):
 
     cur.close()
     connection.commit()
-    print(str(len(mutation_metadata.alleles))+" alleles loaded")
+    print("saved "+str(len(mutation_metadata.alleles))+" alleles")
 
 
-def load_mutation_metadata(connection, filename, omim_genes, genes):
+def load_mutation_metadata(filename, genes):
     """
         Load mutation metadata from a file
     """
-    MutationMetadata = namedtuple('MutationMetadata',['genes','variants','alleles'])
-    mutation_metadata = MutationMetadata({},{},{})
-    variant_set = set()
-    allele_set = set()
-    gene_id = max(genes.entrez.values())+1
+    MutationMetadata = namedtuple('MutationMetadata',['genes','variant_set','variants','allele_set','alleles'])
+    mutation_metadata = MutationMetadata({},set(),{},set(),{})
+
     with open(sys.argv[1]+'/'+filename,'r') as file:
         input = csv.reader(file)
         headers = next(input)
@@ -511,42 +612,24 @@ def load_mutation_metadata(connection, filename, omim_genes, genes):
         tumor_allele_index = headers.index('Tumor_Seq_Allele1')
         var_anno_index = headers.index('Variant_annotation')
 
-        cur = connection.cursor()
         for row in input:
             symbol = row[symbol_index]
             entrez = row[entrez_index]
             key = symbol + ' ('+entrez+')'
             if key not in mutation_metadata.genes:
-                db_gene_id = find_entrez_gene(symbol, entrez, omim_genes, genes)
-                if db_gene_id == None and entrez == '0':
-                    URL = "http://mygene.info/v3/query?q={}&species=human"
-                    my_gene_info = requests.get(URL.format(symbol)).json()
-                    if my_gene_info['total'] == 1:
-                        hit = my_gene_info['hits'][0]
-                        symbol = hit['symbol']
-                        if 'entrezgene' in hit:
-                            entrez = str(hit['entrezgene'])
-                        db_gene_id = find_entrez_gene(symbol, entrez, omim_genes, genes)
-                gene_id = add_entrez_gene(cur, None, symbol, entrez, db_gene_id, omim_genes, genes, gene_id)
-                if db_gene_id == None:
-                    db_gene_id = gene_id-1
-                mutation_metadata.genes[key] = db_gene_id
+                gene = get_entrez_gene(symbol, entrez, genes)
+                mutation_metadata.genes[key] = gene.gene_id
 
             var_class = rm_na(row[var_class_index])
             var_type = rm_na(row[var_type_index])
             var_anno = rm_na(row[var_anno_index])
-            variant_set.add((var_class, var_type, var_anno))
+            mutation_metadata.variant_set.add((var_class, var_type, var_anno))
 
             ref_allele = rm_na(row[ref_allele_index])
             tumor_allele = rm_na(row[tumor_allele_index])
-            allele_set.add((ref_allele,tumor_allele))
+            mutation_metadata.allele_set.add((ref_allele,tumor_allele))
 
-        cur.close()
-        connection.commit()
-        print(str(gene_id-1)+" genes loaded")
-        load_variants(connection, variant_set, mutation_metadata)
-        load_alleles(connection, allele_set, mutation_metadata)
-
+    print("loaded "+str(genes.last["gene_id"]-1)+ " genes")
     return mutation_metadata
 
 
@@ -598,7 +681,7 @@ def load_mutations(connection, filename, mutation_metadata, cell_line_map):
         var_anno_index = headers.index('Variant_annotation')
 
         property_names = ['dbSNP_RS','dbSNP_Val_Status','isDeleterious','ExAC_AF',
-            'VA_WES_AC','CGA_WES_AC','SangerWES_AC','SangerRecalibWES_AC','RNAseq_AC',
+            'CGA_WES_AC','SangerWES_AC','SangerRecalibWES_AC','RNAseq_AC',
             'HC_AC','RD_AC','WGS_AC']
         property_index = [headers.index(name) for name in property_names]
         count_properties = [('isTCGAhotspot','TCGAhsCnt'),('isCOSMIChotspot','COSMIChsCnt')]
@@ -744,69 +827,72 @@ def build_mutation_indexes(connection):
 
 def main():
     """
-        Load depMap data from files and load them into an SQLite database
+        Load depMap data from files and save them into an SQLite database
     """
     print("loading "+sys.argv[1])
     connection = db_connection(sys.argv[2])
-    print("loading cell lines")
+
+    print("loading cell lines ...")
     cell_line_map = load_cell_lines(connection)
-    print("loading genes")
-    omim_genes = load_omim_genes()
-    genes = load_genes(connection, omim_genes)
+    print("saved "+str(len(cell_line_map))+" cell lines")
+
+    print("loading genes ...")
+    genes = load_genes()
+
+    print("loading mutation metadata ...")
+    mutations_file = FILENAME["MUTATIONS"]
+    mutation_metadata=load_mutation_metadata(mutations_file, genes)
+    save_genes(connection, genes)
+    save_gene_combos(connection, genes.combo_list, genes)
     create_mutation_tables(connection)
+    save_variants(connection, mutation_metadata)
+    save_alleles(connection, mutation_metadata)
 
-    mutations_file = "depmap_19Q1_mutation_calls.csv"
-    mutation_metadata=load_mutation_metadata(connection, mutations_file, omim_genes, genes)
-    print(str(len(mutation_metadata.genes))+" mut genes")
-    print(str(len(mutation_metadata.variants))+" mut variants")
-    print(str(len(mutation_metadata.alleles))+" mut alleles")
-
-    protein_map = load_metadata(connection, "CCLE_RPPA_Ab_info_20180123.csv", "PROTEIN")
-    print(str(len(protein_map))+" proteins loaded")
+    print("loading proteins ...")
+    protein_map = load_metadata(connection, FILENAME["PROTEIN_METADATA"], "PROTEIN")
+    print("saved "+str(len(protein_map))+" proteins")
 
     gene_id_map = genes.headers
     ValueTable = namedtuple('ValueTable',['name','abbrev','dim1','dim2'])
 
-    print("loading gene expression")
+    print("loading gene expression ...")
     ge_table = ValueTable("GENE_EXPRESSION","GEX","CELL_LINE","GENE")
-    gene_expr_file = "CCLE_depMap_19Q1_TPM.csv"
+    gene_expr_file = FILENAME["GENE_EXPRESSION"]
     load_values(gene_expr_file, connection, ge_table, cell_line_map, gene_id_map)
 
-    print("loading gene knockdown")
+    print("loading gene knockdown ...")
     gk_table = ValueTable("GENE_KNOCKDOWN","GKD","CELL_LINE","GENE")
-    gene_knockdown_file = "gene_effect_corrected.csv"
+    gene_knockdown_file = FILENAME["GENE_KNOCKDOWN"]
     load_values(gene_knockdown_file, connection, gk_table, cell_line_map, gene_id_map)
 
-    print("loading copy number")
+    print("loading copy number ...")
     cn_table = ValueTable("COPY_NUMBER","CN","CELL_LINE","GENE")
-    gene_knockdown_file = "public_19Q1_gene_cn.csv"
-    load_values(gene_knockdown_file, connection, cn_table, cell_line_map, gene_id_map)
+    copy_number_file = FILENAME["COPY_NUMBER"]
+    load_values(copy_number_file, connection, cn_table, cell_line_map, gene_id_map)
 
-    print("loading RNAi dependencies")
+    print("loading RNAi dependencies ...")
     rnai_table = ValueTable("RNAI","RNAI","CELL_LINE","GENE_COMBO")
-    gene_knockdown_file = "D2_combined_gene_dep_scores.csv"
-    load_rnai_values(gene_knockdown_file, connection, rnai_table, cell_line_map, genes.combos)
+    rnai_file = FILENAME["RNAI"]
+    load_rnai_values(rnai_file, connection, rnai_table, cell_line_map, genes.combos)
 
-    print("loading mutations")
+    print("loading mutations ...")
     load_mutations(connection, mutations_file, mutation_metadata, cell_line_map)
 
     print("loading protein array data")
-    prot_table = ValueTable("PROTEIN_ARRAY","RPPA","CELL_LINE","PROTEIN")
-    file = "CCLE_RPPA_20180123.csv"
-    load_values(file, connection, prot_table, cell_line_map, protein_map)
+    protein_table = ValueTable("PROTEIN_ARRAY","RPPA","CELL_LINE","PROTEIN")
+    protein_file = FILENAME["PROTEIN"]
+    load_values(protein_file, connection, protein_table, cell_line_map, protein_map)
 
-
-    print("building indexes")
+    print("building indexes ...")
     build_indexes(connection)
     build_value_indexes(connection, ge_table)
     build_value_indexes(connection, gk_table)
     build_value_indexes(connection, cn_table)
     build_value_indexes(connection, rnai_table)
-    build_value_indexes(connection, prot_table)
+    build_value_indexes(connection, protein_table)
     build_mutation_indexes(connection)
     connection.close()
     print("done")
-
 
 if __name__ == '__main__':
     main()
