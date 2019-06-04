@@ -15,7 +15,7 @@ class Mutation(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, entrez_gene_id: int=None, gene_symbol: str=None, depmap_id: str=None, ncbi_build: int=None, chromosome: str=None, start_position: int=None, end_position: int=None, strand: str=None, variant_classification: str=None, variant_type: str=None, reference_allele: str=None, tumor_seq_allele: str=None, dbsnp_rs: List[str]=None, dbsnp_val_status: str=None, genome_change: str=None, annotation_transcript: str=None, cdna_change: str=None, codon_change: str=None, protein_change: str=None, is_deleterious: str=None, tcga_hotspot_count: str=None, cosmic_hotspot_count: str=None, exac_af: str=None, va_wes_ac: str=None, cga_wes_ac: str=None, sanger_wes_ac: str=None, sanger_recalibwes_ac: str=None, rnaseq_ac: str=None, hc_ac: str=None, rd_ac: str=None, wgs_ac: str=None, variant_annotation: str=None):  # noqa: E501
+    def __init__(self, entrez_gene_id: int=None, gene_symbol: str=None, depmap_id: str=None, ncbi_build: int=None, chromosome: str=None, start_position: int=None, end_position: int=None, strand: str=None, variant_classification: str=None, variant_type: str=None, reference_allele: str=None, tumor_seq_allele: str=None, dbsnp_rs: List[str]=None, dbsnp_val_status: str=None, genome_change: str=None, annotation_transcript: str=None, cdna_change: str=None, codon_change: str=None, protein_change: str=None, is_deleterious: str=None, tcga_hotspot_count: str=None, cosmic_hotspot_count: str=None, exac_af: str=None, cga_wes_ac: str=None, sanger_wes_ac: str=None, sanger_recalibwes_ac: str=None, rnaseq_ac: str=None, hc_ac: str=None, rd_ac: str=None, wgs_ac: str=None, variant_annotation: str=None):  # noqa: E501
         """Mutation - a model defined in Swagger
 
         :param entrez_gene_id: The entrez_gene_id of this Mutation.  # noqa: E501
@@ -64,8 +64,6 @@ class Mutation(Model):
         :type cosmic_hotspot_count: str
         :param exac_af: The exac_af of this Mutation.  # noqa: E501
         :type exac_af: str
-        :param va_wes_ac: The va_wes_ac of this Mutation.  # noqa: E501
-        :type va_wes_ac: str
         :param cga_wes_ac: The cga_wes_ac of this Mutation.  # noqa: E501
         :type cga_wes_ac: str
         :param sanger_wes_ac: The sanger_wes_ac of this Mutation.  # noqa: E501
@@ -107,7 +105,6 @@ class Mutation(Model):
             'tcga_hotspot_count': str,
             'cosmic_hotspot_count': str,
             'exac_af': str,
-            'va_wes_ac': str,
             'cga_wes_ac': str,
             'sanger_wes_ac': str,
             'sanger_recalibwes_ac': str,
@@ -142,7 +139,6 @@ class Mutation(Model):
             'tcga_hotspot_count': 'tcga_hotspot_count',
             'cosmic_hotspot_count': 'cosmic_hotspot_count',
             'exac_af': 'exac_af',
-            'va_wes_ac': 'va_wes_ac',
             'cga_wes_ac': 'cga_wes_ac',
             'sanger_wes_ac': 'sanger_wes_ac',
             'sanger_recalibwes_ac': 'sanger_recalibwes_ac',
@@ -176,7 +172,6 @@ class Mutation(Model):
         self._tcga_hotspot_count = tcga_hotspot_count
         self._cosmic_hotspot_count = cosmic_hotspot_count
         self._exac_af = exac_af
-        self._va_wes_ac = va_wes_ac
         self._cga_wes_ac = cga_wes_ac
         self._sanger_wes_ac = sanger_wes_ac
         self._sanger_recalibwes_ac = sanger_recalibwes_ac
@@ -679,27 +674,6 @@ class Mutation(Model):
         """
 
         self._exac_af = exac_af
-
-    @property
-    def va_wes_ac(self) -> str:
-        """Gets the va_wes_ac of this Mutation.
-
-
-        :return: The va_wes_ac of this Mutation.
-        :rtype: str
-        """
-        return self._va_wes_ac
-
-    @va_wes_ac.setter
-    def va_wes_ac(self, va_wes_ac: str):
-        """Sets the va_wes_ac of this Mutation.
-
-
-        :param va_wes_ac: The va_wes_ac of this Mutation.
-        :type va_wes_ac: str
-        """
-
-        self._va_wes_ac = va_wes_ac
 
     @property
     def cga_wes_ac(self) -> str:
