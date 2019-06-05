@@ -3,8 +3,8 @@
 import sys
 from setuptools import setup, find_packages
 
-NAME = "swagger_server"
-VERSION = "1.0.0"
+NAME = "depmap_api"
+VERSION = "2019.Q.2"
 
 # To install the library, run the following
 #
