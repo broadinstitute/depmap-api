@@ -20,7 +20,7 @@ class TestTypesController(BaseTestCase):
         Retrieve list of cell lines
         """
         response = self.client.open(
-            '/cell_lines',
+            '/depmap/cell_lines',
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -31,7 +31,7 @@ class TestTypesController(BaseTestCase):
         Retrieve list of genes
         """
         response = self.client.open(
-            '/genes',
+            '/depmap/genes',
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -42,7 +42,7 @@ class TestTypesController(BaseTestCase):
         Retrieve list of protein antibodies
         """
         response = self.client.open(
-            '/proteins',
+            '/depmap/proteins',
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))

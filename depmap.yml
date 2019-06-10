@@ -15,6 +15,8 @@ info:
     name: Broad NCATS translator
     email: translator@broadinstitute.org
     
+host: indigo.ncats.io
+basePath: /depmap
 paths:
   /genes:
     get:

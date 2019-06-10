@@ -23,7 +23,7 @@ class TestValuesController(BaseTestCase):
         Retrieve copy-number values by cell line
         """
         response = self.client.open(
-            '/copy_number/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
+            '/depmap/copy_number/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -34,7 +34,7 @@ class TestValuesController(BaseTestCase):
         Retrieve copy-number values by gene
         """
         response = self.client.open(
-            '/copy_number/by_gene/{entrez_gene_id}'.format(entrez_gene_id=56),
+            '/depmap/copy_number/by_gene/{entrez_gene_id}'.format(entrez_gene_id=56),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -45,7 +45,7 @@ class TestValuesController(BaseTestCase):
         Retrieve gene dependency by cell line
         """
         response = self.client.open(
-            '/gene_dependency/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
+            '/depmap/gene_dependency/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -56,7 +56,7 @@ class TestValuesController(BaseTestCase):
         Retrieve gene dependency by gene
         """
         response = self.client.open(
-            '/gene_dependency/by_gene/{entrez_gene_id}'.format(entrez_gene_id=56),
+            '/depmap/gene_dependency/by_gene/{entrez_gene_id}'.format(entrez_gene_id=56),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -67,7 +67,7 @@ class TestValuesController(BaseTestCase):
         Retrieve gene expression by cell line
         """
         response = self.client.open(
-            '/gene_expression/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
+            '/depmap/gene_expression/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -78,7 +78,7 @@ class TestValuesController(BaseTestCase):
         Retrieve gene expression by gene
         """
         response = self.client.open(
-            '/gene_expression/by_gene/{ensembl_gene}'.format(ensembl_gene='ensembl_gene_example'),
+            '/depmap/gene_expression/by_gene/{ensembl_gene}'.format(ensembl_gene='ensembl_gene_example'),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -89,7 +89,7 @@ class TestValuesController(BaseTestCase):
         Retrieve mutations by cell line
         """
         response = self.client.open(
-            '/mutations/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
+            '/depmap/mutations/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -100,7 +100,7 @@ class TestValuesController(BaseTestCase):
         Retrieve mutations by gene
         """
         response = self.client.open(
-            '/mutations/by_gene/{entrez_gene_id}'.format(entrez_gene_id=56),
+            '/depmap/mutations/by_gene/{entrez_gene_id}'.format(entrez_gene_id=56),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -111,7 +111,7 @@ class TestValuesController(BaseTestCase):
         Retrieve protein array values by cell line
         """
         response = self.client.open(
-            '/protein_array/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
+            '/depmap/protein_array/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -122,7 +122,7 @@ class TestValuesController(BaseTestCase):
         Retrieve protein array values by gene
         """
         response = self.client.open(
-            '/protein_array/by_protein/{antibody_name}'.format(antibody_name='antibody_name_example'),
+            '/depmap/protein_array/by_protein/{antibody_name}'.format(antibody_name='antibody_name_example'),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -133,7 +133,7 @@ class TestValuesController(BaseTestCase):
         Retrieve rnai values by cell line
         """
         response = self.client.open(
-            '/rnai/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
+            '/depmap/rnai/by_cell_line/{depmap_id}'.format(depmap_id='depmap_id_example'),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
@@ -144,7 +144,7 @@ class TestValuesController(BaseTestCase):
         Retrieve rnai values by gene
         """
         response = self.client.open(
-            '/rnai/by_gene/{entrez_gene_id}'.format(entrez_gene_id=56),
+            '/depmap/rnai/by_gene/{entrez_gene_id}'.format(entrez_gene_id=56),
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
