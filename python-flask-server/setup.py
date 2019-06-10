@@ -4,7 +4,7 @@ import sys
 from setuptools import setup, find_packages
 
 NAME = "depmap_api"
-VERSION = "2019.Q.2"
+VERSION = "2019.Q.2.1"
 
 # To install the library, run the following
 #
